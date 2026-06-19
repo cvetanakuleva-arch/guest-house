@@ -1,260 +1,333 @@
-// ============================================
-// GOOGLE APPS SCRIPT - ХОТЕЛ РЕГИСТРАЦИЯ
-// Пълна версия с doPost и doGet
-// ============================================
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Административен панел</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .header h1 { color: #1a1a2e; font-size: 1.8em; }
+        .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .header-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-refresh { background: #667eea; color: white; }
+        .btn-refresh:hover { background: #5a6fd6; transform: translateY(-2px); }
+        .btn-export { background: #28a745; color: white; }
+        .btn-export:hover { background: #218838; transform: translateY(-2px); }
+        .btn-back { background: #dc3545; color: white; }
+        .btn-back:hover { background: #c82333; transform: translateY(-2px); }
 
-var sheetName = 'Sheet1'; // Име на листа в таблицата
-var scriptProp = PropertiesService.getScriptProperties();
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .stat-card .number { font-size: 2.5em; font-weight: 700; color: #667eea; }
+        .stat-card .label { color: #6c757d; font-size: 0.9em; margin-top: 5px; }
+        .stat-card.total .number { color: #667eea; }
+        .stat-card.today .number { color: #28a745; }
 
-// ============================================
-// СТЪПКА 1: ПЪРВОНАЧАЛНА НАСТРОЙКА
-// Изпълнете ТОЗИ код веднъж, за да настроите таблицата
-// ============================================
-function initialSetup() {
-  try {
-    var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-    scriptProp.setProperty('key', activeSpreadsheet.getId());
-    Logger.log('✅ Таблицата е настроена! ID: ' + activeSpreadsheet.getId());
-    
-    // Проверяваме дали има заглавия
-    var sheet = activeSpreadsheet.getSheetByName(sheetName);
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    
-    if (headers.length === 0 || headers[0] === '') {
-      // Създаваме заглавия, ако няма
-      var newHeaders = [
-        'Време (timestamp)',
-        'Номер на резервация',
-        'Дата на резервация',
-        'Дата на пристигане',
-        'Дата на напускане',
-        'Брой гости',
-        'Гости (JSON)'
-      ];
-      sheet.getRange(1, 1, 1, newHeaders.length).setValues([newHeaders]);
-      Logger.log('✅ Създадени са заглавия на колоните');
-    }
-    
-    return '✅ Настройката е успешна!';
-  } catch (error) {
-    Logger.log('❌ Грешка: ' + error.toString());
-    return '❌ Грешка: ' + error.toString();
-  }
-}
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        thead { background: #f8f9fa; }
+        th { padding: 12px 15px; text-align: left; font-weight: 700; border-bottom: 2px solid #e9ecef; }
+        td { padding: 12px 15px; border-bottom: 1px solid #e9ecef; color: #333; }
+        tr:hover { background: #f8f9fa; }
 
-// ============================================
-// СТЪПКА 2: ЗАПИСВАНЕ НА ДАННИ (POST)
-// Извиква се автоматично при POST заявка от формата
-// ============================================
-function doPost(e) {
-  var lock = LockService.getScriptLock();
-  lock.tryLock(10000);
-  
-  try {
-    // Отваряме таблицата
-    var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
-    var sheet = doc.getSheetByName(sheetName);
-    
-    // Вземаме заглавията на колоните (първи ред)
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    var nextRow = sheet.getLastRow() + 1;
-    
-    // Ако няма заглавия, създаваме ги
-    if (headers.length === 0 || headers[0] === '') {
-      var newHeaders = [
-        'Време (timestamp)',
-        'Номер на резервация',
-        'Дата на резервация',
-        'Дата на пристигане',
-        'Дата на напускане',
-        'Брой гости',
-        'Гости (JSON)'
-      ];
-      sheet.getRange(1, 1, 1, newHeaders.length).setValues([newHeaders]);
-      headers = newHeaders;
-    }
-    
-    // Създаваме нов ред с данните
-    var newRow = headers.map(function(header) {
-      if (header === 'Време (timestamp)') {
-        return new Date(); // Автоматично добавяме време
-      }
-      return e.parameter[header] || ''; // Вземаме стойност от формата
-    });
-    
-    // Записваме реда в таблицата
-    sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow]);
-    
-    // Връщаме успешен отговор
-    return ContentService
-      .createTextOutput(JSON.stringify({ 
-        'result': 'success', 
-        'row': nextRow,
-        'message': 'Данните са записани успешно!'
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-      
-  } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ 
-        'result': 'error', 
-        'error': error.toString() 
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } finally {
-    lock.releaseLock();
-  }
-}
+        .loading-state { text-align: center; padding: 60px 20px; color: #6c757d; }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-// ============================================
-// СТЪПКА 3: ЧЕТЕНЕ НА ДАННИ (GET)
-// Извиква се автоматично при GET заявка от административния панел
-// ============================================
-function doGet() {
-  try {
-    // Отваряме таблицата
-    var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
-    var sheet = doc.getSheetByName(sheetName);
-    
-    // Взимаме всички данни
-    var data = sheet.getDataRange().getValues();
-    
-    if (data.length === 0) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ 
-          status: 'success', 
-          data: [],
-          count: 0,
-          message: 'Няма данни в таблицата'
-        }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    var headers = data[0];
-    var rows = data.slice(1);
-    
-    // Преобразуваме в JSON
-    var result = rows.map(function(row) {
-      var obj = {};
-      headers.forEach(function(header, index) {
-        obj[header] = row[index] || '';
-      });
-      return obj;
-    });
-    
-    return ContentService
-      .createTextOutput(JSON.stringify({ 
-        status: 'success', 
-        data: result,
-        count: result.length,
-        message: 'Данните са заредени успешно!'
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-      
-  } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ 
-        status: 'error', 
-        error: error.toString(),
-        message: 'Грешка при зареждане на данните!'
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+        .badge-total { background: #667eea; color: white; }
 
-// ============================================
-// СТЪПКА 4: ТЕСТОВА ФУНКЦИЯ
-// Използвайте за тестване на doPost
-// ============================================
-function testDoPost() {
-  var testData = {
-    parameter: {
-      'Време (timestamp)': new Date().toISOString(),
-      'Номер на резервация': 'TEST-001',
-      'Дата на резервация': '2024-01-15',
-      'Дата на пристигане': '2024-01-20',
-      'Дата на напускане': '2024-01-25',
-      'Брой гости': '2',
-      'Гости (JSON)': '[{"firstName":"Иван","middleName":"","lastName":"Иванов","gender":"male","egn":"1234567890","birthDate":"1990-01-01","nationality":"България","docType":"id_card","docNumber":"A1234567","phone":"0888123456","car":{"plate":"СА1234АВ","brand":"Toyota"}},{"firstName":"Мария","middleName":"","lastName":"Иванова","gender":"female","egn":"0987654321","birthDate":"1992-02-02","nationality":"България","docType":"passport","docNumber":"P9876543","phone":"","car":{"plate":"","brand":""}}]'
-    }
-  };
-  
-  var result = doPost(testData);
-  Logger.log('🧪 Тест резултат: ' + result.getContent());
-  return result.getContent();
-}
+        @media (max-width: 768px) {
+            .header { flex-direction: column; align-items: stretch; text-align: center; }
+            .header-actions { justify-content: center; }
+            .stats { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) { .stats { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>📊 Административен панел</h1>
+            <div class="header-actions">
+                <button class="btn-refresh" onclick="loadData()">🔄 Обнови</button>
+                <button class="btn-export" onclick="exportCSV()">📥 Експорт CSV</button>
+                <button class="btn-back" onclick="window.location.href='index.html'">🏠 Към регистрация</button>
+            </div>
+        </div>
 
-// ============================================
-// СТЪПКА 5: ТЕСТОВА ФУНКЦИЯ ЗА GET
-// ============================================
-function testDoGet() {
-  var result = doGet();
-  Logger.log('🧪 Тест GET: ' + result.getContent());
-  return result.getContent();
-}
+        <!-- СТАТИСТИКИ -->
+        <div class="stats">
+            <div class="stat-card total">
+                <div class="number" id="totalCount">0</div>
+                <div class="label">📋 Общо регистрации</div>
+            </div>
+            <div class="stat-card today">
+                <div class="number" id="todayCount">0</div>
+                <div class="label">📅 Днес</div>
+            </div>
+        </div>
 
-// ============================================
-// СТЪПКА 6: ИЗЧИСТВАНЕ НА ТАБЛИЦАТА
-// ВНИМАНИЕ! ТОВА ИЗТРИВА ВСИЧКИ ДАННИ!
-// ============================================
-function clearAllData() {
-  var confirm = Browser.msgBox('⚠️ ВНИМАНИЕ!', 'Сигурни ли сте, че искате да изтриете ВСИЧКИ данни?', Browser.Buttons.YES_NO);
-  
-  if (confirm === 'yes') {
-    try {
-      var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
-      var sheet = doc.getSheetByName(sheetName);
-      
-      // Изтриваме всички редове след първия (заглавията)
-      var lastRow = sheet.getLastRow();
-      if (lastRow > 1) {
-        sheet.deleteRows(2, lastRow - 1);
-        Logger.log('✅ Всички данни са изтрити!');
-        return '✅ Всички данни са изтрити успешно!';
-      } else {
-        Logger.log('ℹ️ Няма данни за изтриване.');
-        return 'ℹ️ Няма данни за изтриване.';
-      }
-    } catch (error) {
-      Logger.log('❌ Грешка: ' + error.toString());
-      return '❌ Грешка: ' + error.toString();
-    }
-  } else {
-    Logger.log('ℹ️ Операцията е отменена.');
-    return 'ℹ️ Операцията е отменена.';
-  }
-}
+        <!-- ТАБЛИЦА -->
+        <div class="table-container">
+            <div id="tableContent">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Зареждане на данните...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-// ============================================
-// СТЪПКА 7: ПОЛУЧАВАНЕ НА ID НА ТАБЛИЦАТА
-// ============================================
-function getSpreadsheetId() {
-  var id = scriptProp.getProperty('key');
-  Logger.log('📊 ID на таблицата: ' + id);
-  return id;
-}
+    <script>
+        // ============================================
+        // ⚠️ ВАЖНО: СЛОЖЕТЕ ВАШИЯ URL ОТ GOOGLE APPS SCRIPT!
+        // ============================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzFZB9v6zJTdhwqedNo5wWTjoGFU133qdOiuExr6DP2cp7KvW_tgIdRi4ID4q2SZC8-8A/exec';
 
-// ============================================
-// СТЪПКА 8: ПРОВЕРКА НА СТРУКТУРАТА
-// ============================================
-function checkStructure() {
-  try {
-    var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
-    var sheet = doc.getSheetByName(sheetName);
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    
-    var info = {
-      spreadsheetId: scriptProp.getProperty('key'),
-      sheetName: sheetName,
-      headers: headers,
-      rowCount: sheet.getLastRow(),
-      columnCount: sheet.getLastColumn()
-    };
-    
-    Logger.log('📊 Структура на таблицата: ' + JSON.stringify(info, null, 2));
-    return info;
-  } catch (error) {
-    Logger.log('❌ Грешка: ' + error.toString());
-    return { error: error.toString() };
-  }
-}
+        let allData = [];
+
+        // ============================================
+        // ЗАРЕЖДАНЕ НА ДАННИТЕ
+        // ============================================
+        function loadData() {
+            const container = document.getElementById('tableContent');
+            container.innerHTML = `
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Зареждане на данните...</p>
+                </div>
+            `;
+
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.status === 'success') {
+                        allData = result.data || [];
+                        updateStats();
+                        renderTable();
+                    } else {
+                        container.innerHTML = `
+                            <div style="text-align:center; padding:60px 20px; color:#6c757d;">
+                                <p>❌ Грешка при зареждане на данните!</p>
+                                <p style="font-size:0.8em;">${result.error || 'Моля, опитайте отново.'}</p>
+                                <button onclick="loadData()" style="margin-top:15px; padding:10px 30px; background:#667eea; color:white; border:none; border-radius:8px; cursor:pointer;">Опитай отново</button>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:60px 20px; color:#6c757d;">
+                            <p>❌ Грешка при зареждане на данните!</p>
+                            <p style="font-size:0.8em;">${error.message}</p>
+                            <button onclick="loadData()" style="margin-top:15px; padding:10px 30px; background:#667eea; color:white; border:none; border-radius:8px; cursor:pointer;">Опитай отново</button>
+                        </div>
+                    `;
+                });
+        }
+
+        // ============================================
+        // СТАТИСТИКИ
+        // ============================================
+        function updateStats() {
+            const today = new Date().toISOString().split('T')[0];
+            let todayCount = 0;
+
+            allData.forEach(row => {
+                const date = row['Време (timestamp)'] || row['Дата на резервация'] || '';
+                if (date) {
+                    const rowDate = date.split('T')[0] || date;
+                    if (rowDate === today) todayCount++;
+                }
+            });
+
+            document.getElementById('totalCount').textContent = allData.length;
+            document.getElementById('todayCount').textContent = todayCount;
+        }
+
+        // ============================================
+        // РЕНДИРАНЕ НА ТАБЛИЦА
+        // ============================================
+        function renderTable() {
+            const container = document.getElementById('tableContent');
+            
+            if (allData.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:60px 20px; color:#6c757d;">
+                        <p style="font-size:3em;">📭</p>
+                        <p>Няма регистрации</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>📅 Дата</th>
+                            <th>🔢 Резервация</th>
+                            <th>👥 Гости</th>
+                            <th>📋 Детайли</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            allData.forEach(row => {
+                const timestamp = row['Време (timestamp)'] || row['Дата на резервация'] || 'N/A';
+                const resNumber = row['Номер на резервация'] || 'N/A';
+                let guests = [];
+                try {
+                    guests = JSON.parse(row['Гости (JSON)'] || '[]');
+                } catch(e) {
+                    guests = [];
+                }
+
+                const guestCount = guests.length || 1;
+                const firstGuest = guests[0] || {};
+                const guestNames = guests.map(g => `${g.firstName || ''} ${g.lastName || ''}`.trim()).join(', ');
+
+                html += `
+                    <tr>
+                        <td>${formatDate(timestamp)}</td>
+                        <td><strong>${resNumber}</strong></td>
+                        <td><span class="badge badge-total">${guestCount}</span></td>
+                        <td>
+                            ${firstGuest.firstName ? `<strong>Име:</strong> ${firstGuest.firstName} ${firstGuest.lastName || ''}<br>` : ''}
+                            ${firstGuest.egn ? `<strong>ЕГН:</strong> ${firstGuest.egn}<br>` : ''}
+                            ${firstGuest.phone ? `<strong>📞:</strong> ${firstGuest.phone}` : ''}
+                            ${guests.length > 1 ? `<br><span style="color:#28a745;">+${guests.length - 1} още</span>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+                <div style="padding:15px 0; text-align:center; color:#6c757d; font-size:0.9em;">
+                    Показани ${allData.length} регистрации
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // ============================================
+        // ФОРМАТИРАНЕ НА ДАТА
+        // ============================================
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date)) return dateStr;
+                return date.toLocaleString('bg-BG', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch(e) {
+                return dateStr;
+            }
+        }
+
+        // ============================================
+        // ЕКСПОРТ КЪМ CSV
+        // ============================================
+        function exportCSV() {
+            if (allData.length === 0) {
+                alert('Няма данни за експортиране!');
+                return;
+            }
+
+            const headers = Object.keys(allData[0]);
+            let csv = headers.join(',') + '\n';
+            
+            allData.forEach(row => {
+                const values = headers.map(header => {
+                    let val = row[header] || '';
+                    if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
+                        val = '"' + val.replace(/"/g, '""') + '"';
+                    }
+                    return val;
+                });
+                csv += values.join(',') + '\n';
+            });
+
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `registrations_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        // ============================================
+        // АВТОМАТИЧНО ЗАРЕЖДАНЕ
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            // Обновяване на всеки 60 секунди
+            setInterval(loadData, 60000);
+        });
+    </script>
+</body>
+</html>

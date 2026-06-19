@@ -1,0 +1,260 @@
+// ============================================
+// GOOGLE APPS SCRIPT - ХОТЕЛ РЕГИСТРАЦИЯ
+// Пълна версия с doPost и doGet
+// ============================================
+
+var sheetName = 'Sheet1'; // Име на листа в таблицата
+var scriptProp = PropertiesService.getScriptProperties();
+
+// ============================================
+// СТЪПКА 1: ПЪРВОНАЧАЛНА НАСТРОЙКА
+// Изпълнете ТОЗИ код веднъж, за да настроите таблицата
+// ============================================
+function initialSetup() {
+  try {
+    var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    scriptProp.setProperty('key', activeSpreadsheet.getId());
+    Logger.log('✅ Таблицата е настроена! ID: ' + activeSpreadsheet.getId());
+    
+    // Проверяваме дали има заглавия
+    var sheet = activeSpreadsheet.getSheetByName(sheetName);
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    
+    if (headers.length === 0 || headers[0] === '') {
+      // Създаваме заглавия, ако няма
+      var newHeaders = [
+        'Време (timestamp)',
+        'Номер на резервация',
+        'Дата на резервация',
+        'Дата на пристигане',
+        'Дата на напускане',
+        'Брой гости',
+        'Гости (JSON)'
+      ];
+      sheet.getRange(1, 1, 1, newHeaders.length).setValues([newHeaders]);
+      Logger.log('✅ Създадени са заглавия на колоните');
+    }
+    
+    return '✅ Настройката е успешна!';
+  } catch (error) {
+    Logger.log('❌ Грешка: ' + error.toString());
+    return '❌ Грешка: ' + error.toString();
+  }
+}
+
+// ============================================
+// СТЪПКА 2: ЗАПИСВАНЕ НА ДАННИ (POST)
+// Извиква се автоматично при POST заявка от формата
+// ============================================
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+  
+  try {
+    // Отваряме таблицата
+    var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
+    var sheet = doc.getSheetByName(sheetName);
+    
+    // Вземаме заглавията на колоните (първи ред)
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var nextRow = sheet.getLastRow() + 1;
+    
+    // Ако няма заглавия, създаваме ги
+    if (headers.length === 0 || headers[0] === '') {
+      var newHeaders = [
+        'Време (timestamp)',
+        'Номер на резервация',
+        'Дата на резервация',
+        'Дата на пристигане',
+        'Дата на напускане',
+        'Брой гости',
+        'Гости (JSON)'
+      ];
+      sheet.getRange(1, 1, 1, newHeaders.length).setValues([newHeaders]);
+      headers = newHeaders;
+    }
+    
+    // Създаваме нов ред с данните
+    var newRow = headers.map(function(header) {
+      if (header === 'Време (timestamp)') {
+        return new Date(); // Автоматично добавяме време
+      }
+      return e.parameter[header] || ''; // Вземаме стойност от формата
+    });
+    
+    // Записваме реда в таблицата
+    sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow]);
+    
+    // Връщаме успешен отговор
+    return ContentService
+      .createTextOutput(JSON.stringify({ 
+        'result': 'success', 
+        'row': nextRow,
+        'message': 'Данните са записани успешно!'
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ 
+        'result': 'error', 
+        'error': error.toString() 
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ============================================
+// СТЪПКА 3: ЧЕТЕНЕ НА ДАННИ (GET)
+// Извиква се автоматично при GET заявка от административния панел
+// ============================================
+function doGet() {
+  try {
+    // Отваряме таблицата
+    var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
+    var sheet = doc.getSheetByName(sheetName);
+    
+    // Взимаме всички данни
+    var data = sheet.getDataRange().getValues();
+    
+    if (data.length === 0) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ 
+          status: 'success', 
+          data: [],
+          count: 0,
+          message: 'Няма данни в таблицата'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    var headers = data[0];
+    var rows = data.slice(1);
+    
+    // Преобразуваме в JSON
+    var result = rows.map(function(row) {
+      var obj = {};
+      headers.forEach(function(header, index) {
+        obj[header] = row[index] || '';
+      });
+      return obj;
+    });
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({ 
+        status: 'success', 
+        data: result,
+        count: result.length,
+        message: 'Данните са заредени успешно!'
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ 
+        status: 'error', 
+        error: error.toString(),
+        message: 'Грешка при зареждане на данните!'
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ============================================
+// СТЪПКА 4: ТЕСТОВА ФУНКЦИЯ
+// Използвайте за тестване на doPost
+// ============================================
+function testDoPost() {
+  var testData = {
+    parameter: {
+      'Време (timestamp)': new Date().toISOString(),
+      'Номер на резервация': 'TEST-001',
+      'Дата на резервация': '2024-01-15',
+      'Дата на пристигане': '2024-01-20',
+      'Дата на напускане': '2024-01-25',
+      'Брой гости': '2',
+      'Гости (JSON)': '[{"firstName":"Иван","middleName":"","lastName":"Иванов","gender":"male","egn":"1234567890","birthDate":"1990-01-01","nationality":"България","docType":"id_card","docNumber":"A1234567","phone":"0888123456","car":{"plate":"СА1234АВ","brand":"Toyota"}},{"firstName":"Мария","middleName":"","lastName":"Иванова","gender":"female","egn":"0987654321","birthDate":"1992-02-02","nationality":"България","docType":"passport","docNumber":"P9876543","phone":"","car":{"plate":"","brand":""}}]'
+    }
+  };
+  
+  var result = doPost(testData);
+  Logger.log('🧪 Тест резултат: ' + result.getContent());
+  return result.getContent();
+}
+
+// ============================================
+// СТЪПКА 5: ТЕСТОВА ФУНКЦИЯ ЗА GET
+// ============================================
+function testDoGet() {
+  var result = doGet();
+  Logger.log('🧪 Тест GET: ' + result.getContent());
+  return result.getContent();
+}
+
+// ============================================
+// СТЪПКА 6: ИЗЧИСТВАНЕ НА ТАБЛИЦАТА
+// ВНИМАНИЕ! ТОВА ИЗТРИВА ВСИЧКИ ДАННИ!
+// ============================================
+function clearAllData() {
+  var confirm = Browser.msgBox('⚠️ ВНИМАНИЕ!', 'Сигурни ли сте, че искате да изтриете ВСИЧКИ данни?', Browser.Buttons.YES_NO);
+  
+  if (confirm === 'yes') {
+    try {
+      var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
+      var sheet = doc.getSheetByName(sheetName);
+      
+      // Изтриваме всички редове след първия (заглавията)
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        sheet.deleteRows(2, lastRow - 1);
+        Logger.log('✅ Всички данни са изтрити!');
+        return '✅ Всички данни са изтрити успешно!';
+      } else {
+        Logger.log('ℹ️ Няма данни за изтриване.');
+        return 'ℹ️ Няма данни за изтриване.';
+      }
+    } catch (error) {
+      Logger.log('❌ Грешка: ' + error.toString());
+      return '❌ Грешка: ' + error.toString();
+    }
+  } else {
+    Logger.log('ℹ️ Операцията е отменена.');
+    return 'ℹ️ Операцията е отменена.';
+  }
+}
+
+// ============================================
+// СТЪПКА 7: ПОЛУЧАВАНЕ НА ID НА ТАБЛИЦАТА
+// ============================================
+function getSpreadsheetId() {
+  var id = scriptProp.getProperty('key');
+  Logger.log('📊 ID на таблицата: ' + id);
+  return id;
+}
+
+// ============================================
+// СТЪПКА 8: ПРОВЕРКА НА СТРУКТУРАТА
+// ============================================
+function checkStructure() {
+  try {
+    var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
+    var sheet = doc.getSheetByName(sheetName);
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    
+    var info = {
+      spreadsheetId: scriptProp.getProperty('key'),
+      sheetName: sheetName,
+      headers: headers,
+      rowCount: sheet.getLastRow(),
+      columnCount: sheet.getLastColumn()
+    };
+    
+    Logger.log('📊 Структура на таблицата: ' + JSON.stringify(info, null, 2));
+    return info;
+  } catch (error) {
+    Logger.log('❌ Грешка: ' + error.toString());
+    return { error: error.toString() };
+  }
+}

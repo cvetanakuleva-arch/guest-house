@@ -7,7 +7,7 @@
     
     <style>
         /* ============================================
-           ВСИЧКИ CSS СТИЛОВЕ
+           ВСИЧКИ CSS СТИЛОВЕ (СЪЩИТЕ КАТО ПРЕДИ)
            ============================================ */
         
         * {
@@ -32,9 +32,6 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         }
 
-        /* ============================================
-           ЕЗИКОВА СЕЛЕКЦИЯ
-           ============================================ */
         .language-selector {
             display: flex;
             justify-content: flex-end;
@@ -68,10 +65,6 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
-        .language-flag {
-            font-size: 1.3em;
-        }
-
         h1 {
             color: #1a1a2e;
             text-align: center;
@@ -85,9 +78,6 @@
             font-size: 1.3em;
         }
 
-        /* ============================================
-           СЕКЦИЯ ЗА ИЗБОР НА ГОСТИ
-           ============================================ */
         #guestSelection {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 50px 30px;
@@ -174,9 +164,6 @@
             font-size: 0.9em;
         }
 
-        /* ============================================
-           ОБЩИ СЕКЦИИ
-           ============================================ */
         .section {
             background: #f8f9fa;
             border-radius: 10px;
@@ -185,9 +172,6 @@
             border: 1px solid #e9ecef;
         }
 
-        /* ============================================
-           ФОРМУЛЯР
-           ============================================ */
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -239,9 +223,6 @@
             border-color: #dc3545;
         }
 
-        /* ============================================
-           СЕКЦИЯ ЗА ГОСТ - АНИМАЦИЯ
-           ============================================ */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -293,9 +274,6 @@
             font-weight: 400;
         }
 
-        /* ============================================
-           АВТОМОБИЛ
-           ============================================ */
         .car-section {
             background: #f1f3f5;
             border-radius: 8px;
@@ -310,9 +288,6 @@
             font-size: 0.95em;
         }
 
-        /* ============================================
-           ЧЕКБОКСОВЕ
-           ============================================ */
         .checkbox-group {
             display: flex;
             align-items: flex-start;
@@ -342,9 +317,6 @@
             font-size: 0.95em;
         }
 
-        /* ============================================
-           БУТОНИ
-           ============================================ */
         #registerBtn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -386,9 +358,6 @@
             transform: translateY(-2px);
         }
 
-        /* ============================================
-           ИНФОРМАЦИЯ ЗА ГОСТИТЕ
-           ============================================ */
         #guestSummary {
             text-align: center;
             margin: 10px 0 20px 0;
@@ -397,9 +366,6 @@
             font-size: 1.1em;
         }
 
-        /* ============================================
-           СЪОБЩЕНИЕ С БЛАГОДАРНОСТ
-           ============================================ */
         .success-message {
             display: none;
             background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
@@ -441,9 +407,6 @@
             color: #155724;
         }
 
-        /* ============================================
-           АДАПТИВНОСТ ЗА ТЕЛЕФОНИ
-           ============================================ */
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -490,9 +453,6 @@
             }
         }
 
-        /* ============================================
-           ЛОДЪР (зареждане)
-           ============================================ */
         .loading {
             display: none;
             text-align: center;
@@ -521,10 +481,6 @@
 </head>
 <body>
     <div class="container">
-        
-        <!-- ============================================
-             ЕЗИКОВА СЕЛЕКЦИЯ
-             ============================================ -->
         <div class="language-selector">
             <label for="languageSelect">🌐 Език / Language:</label>
             <select id="languageSelect">
@@ -537,9 +493,6 @@
 
         <h1 id="pageTitle">🏨 Регистрация на гости</h1>
         
-        <!-- ============================================
-             СТЪПКА 1: ИЗБОР НА БРОЙ ГОСТИ
-             ============================================ -->
         <div id="guestSelection">
             <div class="selection-box">
                 <label id="guestCountLabel" for="guestCount">Брой гости:</label>
@@ -558,12 +511,7 @@
             </p>
         </div>
 
-        <!-- ============================================
-             СТЪПКА 2: ФОРМУЛЯР (СКРИТ В НАЧАЛОТО)
-             ============================================ -->
         <div id="formContainer" style="display: none;">
-            
-            <!-- СЪОБЩЕНИЕ С БЛАГОДАРНОСТ -->
             <div id="successMessage" class="success-message">
                 <div id="thankYouText" class="thank-you">🎉 Благодарим ви!</div>
                 <div id="successSubText" class="sub-message">Вие и вашите гости бяхте регистрирани успешно.</div>
@@ -576,13 +524,11 @@
                 </div>
             </div>
 
-            <!-- ЛОДЪР -->
             <div id="loading" class="loading">
                 <div class="spinner"></div>
                 <p id="loadingText" style="margin-top: 10px; color: #667eea;">Изпращане на данните...</p>
             </div>
 
-            <!-- ДАННИ ЗА РЕЗЕРВАЦИЯТА -->
             <div class="section">
                 <h2 id="reservationTitle">📋 Данни за резервацията</h2>
                 <div class="form-row">
@@ -607,13 +553,10 @@
                 </div>
             </div>
 
-            <!-- ИНФОРМАЦИЯ ЗА БРОЯ ГОСТИ -->
             <div id="guestSummary"></div>
 
-            <!-- ТУК ЩЕ СЕ ПОЯВЯТ ГОСТИТЕ -->
             <div id="guestsContainer"></div>
 
-            <!-- ДЕКЛАРАЦИИ -->
             <div class="section">
                 <h2 id="declarationsTitle">📜 Декларации</h2>
                 <div class="checkbox-group">
@@ -633,7 +576,7 @@
 
     <script>
         // ============================================
-        // ПРЕВОДИ НА ВСИЧКИ ЕЗИЦИ
+        // ПРЕВОДИ
         // ============================================
         const translations = {
             bg: {
@@ -823,13 +766,12 @@
         let currentLanguage = 'bg';
 
         // ============================================
-        // ФУНКЦИЯ: Смяна на езика
+        // ФУНКЦИИ
         // ============================================
         function changeLanguage(lang) {
             currentLanguage = lang;
             const t = translations[lang];
             
-            // Общи елементи
             document.getElementById('pageTitle').textContent = t.pageTitle;
             document.getElementById('guestCountLabel').textContent = t.guestCountLabel;
             document.getElementById('selectionHint').textContent = t.selectionHint;
@@ -850,19 +792,14 @@
             document.getElementById('receptionHint').textContent = t.receptionHint;
             document.getElementById('loadingText').textContent = t.loadingText;
             
-            // Обновяваме секциите за гости, ако има такива
             const guestCountDisplay = parseInt(document.getElementById('guestCountDisplay').textContent);
             if (document.getElementById('guestsContainer').children.length > 0) {
                 regenerateGuestsWithLanguage(guestCountDisplay, lang);
             }
             
-            // Обновяваме съобщението за брой гости
             updateGuestSummary(lang);
         }
 
-        // ============================================
-        // ФУНКЦИЯ: Обновява съобщението за брой гости
-        // ============================================
         function updateGuestSummary(lang) {
             const count = parseInt(document.getElementById('guestCountDisplay').textContent);
             const summary = document.getElementById('guestSummary');
@@ -871,17 +808,10 @@
             }
         }
 
-        // ============================================
-        // ФУНКЦИЯ: Регенерира гостите с нов език
-        // ============================================
         function regenerateGuestsWithLanguage(count, lang) {
-            // Запазваме старите стойности
             const oldData = collectFormData();
-            
-            // Генерираме наново
             generateGuests(count, lang);
             
-            // Възстановяваме старите стойности (ако има)
             for (let i = 1; i <= count; i++) {
                 const guest = oldData.guests[i - 1];
                 if (guest) {
@@ -896,9 +826,6 @@
             }
         }
 
-        // ============================================
-        // ФУНКЦИЯ: Генерира номер на резервация
-        // ============================================
         function generateReservationNumber() {
             const now = new Date();
             const year = now.getFullYear();
@@ -908,15 +835,11 @@
             return `RES-${year}${month}${day}-${random}`;
         }
 
-        // ============================================
-        // ФУНКЦИЯ: Генерира секции за гости
-        // ============================================
         function generateGuests(count, lang) {
             const t = translations[lang] || translations.bg;
             const container = document.getElementById('guestsContainer');
             container.innerHTML = '';
             
-            // Показваме колко гости се регистрират
             document.getElementById('guestSummary').textContent = t.guestSummary + count;
             
             for (let i = 1; i <= count; i++) {
@@ -926,7 +849,6 @@
                 
                 const isFirstGuest = i === 1;
                 
-                // Телефон - само за Гост 1
                 const phoneHTML = isFirstGuest ? `
                     <div class="form-group">
                         <label for="phone${i}">${t.phone}</label>
@@ -934,7 +856,6 @@
                     </div>
                 ` : '';
                 
-                // Автомобил - само за Гост 1
                 const carHTML = isFirstGuest ? `
                     <div class="car-section">
                         <h4>${t.carTitle}</h4>
@@ -951,12 +872,10 @@
                     </div>
                 ` : '';
                 
-                // Генерираме опциите за пол
                 const genderOptions = t.genderOptions.map((opt, idx) => {
                     return `<option value="${idx === 0 ? '' : (idx === 1 ? 'male' : 'female')}">${opt}</option>`;
                 }).join('');
                 
-                // Генерираме опциите за вид документ
                 const docOptions = t.docTypeOptions.map((opt, idx) => {
                     const values = ['', 'id_card', 'passport', 'driving_license'];
                     return `<option value="${values[idx]}">${opt}</option>`;
@@ -1028,20 +947,15 @@
                 container.appendChild(guestDiv);
             }
             
-            // Фокусираме първото поле
             setTimeout(() => {
                 const firstInput = document.querySelector('#guestsContainer input:not([readonly])');
                 if (firstInput) firstInput.focus();
             }, 300);
         }
 
-        // ============================================
-        // ФУНКЦИЯ: Валидация на формата
-        // ============================================
         function validateForm() {
             const t = translations[currentLanguage];
             
-            // 1. Проверка на резервационните данни
             const reservationFields = ['reservationDate', 'arrivalDate', 'departureDate'];
             const fieldLabels = ['Дата на резервация', 'Дата на пристигане', 'Дата на напускане'];
             
@@ -1057,7 +971,6 @@
                 field.classList.remove('error');
             }
             
-            // 2. Проверка на дати
             const arrival = new Date(document.getElementById('arrivalDate').value);
             const departure = new Date(document.getElementById('departureDate').value);
             const today = new Date();
@@ -1075,7 +988,6 @@
                 return false;
             }
             
-            // 3. Проверка на всеки гост
             const guestCount = parseInt(document.getElementById('guestCountDisplay').textContent);
             for (let i = 1; i <= guestCount; i++) {
                 const required = [
@@ -1102,7 +1014,6 @@
                 }
             }
             
-            // 4. Проверка на декларациите
             if (!document.getElementById('declaration1').checked) {
                 alert(t.alertDeclaration1);
                 document.getElementById('declaration1').focus();
@@ -1118,9 +1029,6 @@
             return true;
         }
 
-        // ============================================
-        // ФУНКЦИЯ: Събира данните от формата
-        // ============================================
         function collectFormData() {
             const guestCount = parseInt(document.getElementById('guestCountDisplay').textContent);
             
@@ -1165,7 +1073,7 @@
         }
 
         // ============================================
-        // ФУНКЦИЯ: Изпраща данните към Google Sheets
+        // ФУНКЦИЯ: ИЗПРАЩАНЕ КЪМ GOOGLE SHEETS (ПОПРАВЕНА)
         // ============================================
         function sendDataToGoogleSheets(data) {
             const t = translations[currentLanguage];
@@ -1173,34 +1081,31 @@
             document.getElementById('loading').classList.add('active');
             document.getElementById('registerBtn').disabled = true;
             
-            // ПОДГОТВЯМЕ ДАННИТЕ КАТО JSON
-            const jsonData = {
-                'Номер на резервация': data.reservation.number,
-                'Дата на резервация': data.reservation.date,
-                'Дата на пристигане': data.reservation.arrival,
-                'Дата на напускане': data.reservation.departure,
-                'Брой гости': data.guests.length,
-                'Гости (JSON)': JSON.stringify(data.guests)
-            };
+            // ПОДГОТВЯМЕ ДАННИТЕ КАТО URL ПАРАМЕТРИ
+            const params = new URLSearchParams();
+            params.append('Номер на резервация', data.reservation.number);
+            params.append('Дата на резервация', data.reservation.date);
+            params.append('Дата на пристигане', data.reservation.arrival);
+            params.append('Дата на напускане', data.reservation.departure);
+            params.append('Брой гости', data.guests.length);
+            params.append('Гости (JSON)', JSON.stringify(data.guests));
             
-            // НОВИЯТ ВИ URL ОТ GOOGLE APPS SCRIPT
+            // ВАШИЯТ URL ОТ GOOGLE APPS SCRIPT
             const scriptURL = 'https://script.google.com/macros/s/AKfycbzSjZWBv3rG7YcTyXqNZ0g01HyQnqmrbvW7dWu9LqX1H7WYiGYYV0lnRiOAeJPW-zA9/exec';
             
-            // ИЗПРАЩАМЕ КАТО JSON С mode: 'no-cors' за GitHub Pages
+            // ИЗПРАЩАМЕ КАТО URL ПАРАМЕТРИ
             fetch(scriptURL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: JSON.stringify(jsonData)
+                body: params.toString()
             })
             .then(() => {
-                // ПРИ no-cors НЕ МОЖЕМ ДА ПРОЧЕТЕМ ОТГОВОРА, НО ЗНАЕМ, ЧЕ ЗАЯВКАТА Е ИЗПРАТЕНА
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('registerBtn').disabled = false;
                 
-                // ПОКАЗВАМЕ УСПЕХ (ПРЕДПОЛАГАМЕ, ЧЕ ДАННИТЕ СА ЗАПИСАНИ)
                 const roomCode = '1234';
                 document.querySelector('.room-code').innerHTML = `🔑 ${roomCode}`;
                 document.getElementById('successMessage').classList.add('active');
@@ -1221,21 +1126,17 @@
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             
-            // Скриваме формата в началото
             document.getElementById('formContainer').style.display = 'none';
             
-            // Слагаме днешната дата
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('reservationDate').value = today;
             document.getElementById('reservationNumber').value = generateReservationNumber();
 
-            // ---------- ЕЗИКОВА СЕЛЕКЦИЯ ----------
             document.getElementById('languageSelect').addEventListener('change', function() {
                 const lang = this.value;
                 changeLanguage(lang);
             });
 
-            // ---------- БУТОНИ + И - ----------
             document.getElementById('increaseBtn').addEventListener('click', function() {
                 if (guestCount < MAX_GUESTS) {
                     guestCount++;
@@ -1252,7 +1153,6 @@
                 }
             });
 
-            // ---------- БУТОН "ПРОДЪЛЖИ" ----------
             document.getElementById('continueBtn').addEventListener('click', function() {
                 const count = parseInt(document.getElementById('guestCountDisplay').textContent);
                 generateGuests(count, currentLanguage);
@@ -1261,7 +1161,6 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
 
-            // ---------- БУТОН "НАЗАД" ----------
             document.getElementById('backBtn').addEventListener('click', function() {
                 document.getElementById('formContainer').style.display = 'none';
                 document.getElementById('guestSelection').style.display = 'block';
@@ -1269,7 +1168,6 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
 
-            // ---------- БУТОН "РЕГИСТРИРАЙ" ----------
             document.getElementById('registerBtn').addEventListener('click', function() {
                 if (validateForm()) {
                     const data = collectFormData();

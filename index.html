@@ -1041,7 +1041,7 @@
         function validateForm() {
             const t = translations[currentLanguage];
             
-            // 1. Проверка на резервационните данни (без номер на резервация)
+            // 1. Проверка на резервационните данни
             const reservationFields = ['reservationDate', 'arrivalDate', 'departureDate'];
             const fieldLabels = ['Дата на резервация', 'Дата на пристигане', 'Дата на напускане'];
             
@@ -1057,7 +1057,25 @@
                 field.classList.remove('error');
             }
             
-            // 2. Проверка на всеки гост
+            // 2. Проверка на дати
+            const arrival = new Date(document.getElementById('arrivalDate').value);
+            const departure = new Date(document.getElementById('departureDate').value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (arrival < today) {
+                alert('❌ Датата на пристигане не може да бъде в миналото!');
+                document.getElementById('arrivalDate').focus();
+                return false;
+            }
+
+            if (departure <= arrival) {
+                alert('❌ Датата на напускане трябва да е след датата на пристигане!');
+                document.getElementById('departureDate').focus();
+                return false;
+            }
+            
+            // 3. Проверка на всеки гост
             const guestCount = parseInt(document.getElementById('guestCountDisplay').textContent);
             for (let i = 1; i <= guestCount; i++) {
                 const required = [
@@ -1084,7 +1102,7 @@
                 }
             }
             
-            // 3. Проверка на декларациите
+            // 4. Проверка на декларациите
             if (!document.getElementById('declaration1').checked) {
                 alert(t.alertDeclaration1);
                 document.getElementById('declaration1').focus();
@@ -1155,25 +1173,34 @@
             document.getElementById('loading').classList.add('active');
             document.getElementById('registerBtn').disabled = true;
             
-            const formData = new FormData();
-            formData.append('Номер на резервация', data.reservation.number);
-            formData.append('Дата на резервация', data.reservation.date);
-            formData.append('Дата на пристигане', data.reservation.arrival);
-            formData.append('Дата на напускане', data.reservation.departure);
-            formData.append('Гости (JSON)', JSON.stringify(data.guests));
-            formData.append('Брой гости', data.guests.length);
+            // ПРЕОБРАЗУВАМЕ ДАННИТЕ В URL ПАРАМЕТРИ
+            const params = new URLSearchParams();
+            params.append('Номер на резервация', data.reservation.number);
+            params.append('Дата на резервация', data.reservation.date);
+            params.append('Дата на пристигане', data.reservation.arrival);
+            params.append('Дата на напускане', data.reservation.departure);
+            params.append('Брой гости', data.guests.length);
+            params.append('Гости (JSON)', JSON.stringify(data.guests));
             
-            // ⚠️ ВАЖНО: ЗАМЕНЕТЕ ТОВА С ВАШИЯ URL ОТ GOOGLE APPS SCRIPT!
+            // ВАШИЯТ URL ОТ GOOGLE APPS SCRIPT
             const scriptURL = 'https://script.google.com/macros/s/AKfycby_vBP86IC-O0Qjs3_80xs8gcwlExkKBSaXpOH0UrZB4f6AgDiQ1WigVY6_FfOtC559/exec';
             
             fetch(scriptURL, {
                 method: 'POST',
                 mode: 'no-cors',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: params.toString()
             })
             .then(() => {
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('registerBtn').disabled = false;
+                
+                // ГЕНЕРИРАМЕ СЛУЧАЕН КОД ЗА СТАЯТА (4 ЦИФРИ)
+                const roomCode = String(Math.floor(1000 + Math.random() * 9000));
+                document.querySelector('.room-code').innerHTML = `🔑 ${roomCode}`;
+                
                 document.getElementById('successMessage').classList.add('active');
                 document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
                 console.log('✅ Данните са изпратени успешно!');
@@ -1251,3 +1278,4 @@
     </script>
 </body>
 </html>
+       

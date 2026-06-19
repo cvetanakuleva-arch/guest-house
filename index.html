@@ -1197,9 +1197,9 @@
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('registerBtn').disabled = false;
                 
-                // ГЕНЕРИРАМЕ СЛУЧАЕН КОД ЗА СТАЯТА (4 ЦИФРИ)
-                const roomCode = String(Math.floor(1000 + Math.random() * 9000));
-                document.querySelector('.room-code').innerHTML = `🔑 ${roomCode}`;
+                // ФИКСИРАН КОД ЗА СТАЯТА - ВИНАГИ 1234
+        const roomCode = '1234';
+        document.querySelector('.room-code').innerHTML = `🔑 ${roomCode}`;
                 
                 document.getElementById('successMessage').classList.add('active');
                 document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });

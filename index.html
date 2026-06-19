@@ -611,7 +611,6 @@
                 thankYou: '🎉 Благодарим ви!',
                 successSub: 'Вие и вашите гости бяхте регистрирани успешно.',
                 roomCodeHint: '⚠️ Моля, запишете този код! Той е вашият технически код за стаята.',
-                receptionHint: 'Покажете този код на рецепцията при настаняване.',
                 loadingText: 'Изпращане на данните...',
                 alertRequired: '❌ Моля, попълнете "',
                 alertRequiredGuest: '❌ Моля, попълнете всички задължителни полета (*) за Гост ',
@@ -655,7 +654,6 @@
                 thankYou: '🎉 Благодарим вас!',
                 successSub: 'Вы и ваши гости были зарегистрированы успешно.',
                 roomCodeHint: '⚠️ Пожалуйста, запишите этот код! Это ваш технический код для комнаты.',
-                receptionHint: 'Покажите этот код на ресепшене при заселении.',
                 loadingText: 'Отправка данных...',
                 alertRequired: '❌ Пожалуйста, заполните "',
                 alertRequiredGuest: '❌ Пожалуйста, заполните все обязательные поля (*) для Гостя ',
@@ -699,7 +697,6 @@
                 thankYou: '🎉 Thank you!',
                 successSub: 'You and your guests have been registered successfully.',
                 roomCodeHint: '⚠️ Please save this code! This is your technical room code.',
-                receptionHint: 'Show this code at the reception upon check-in.',
                 loadingText: 'Sending data...',
                 alertRequired: '❌ Please fill in "',
                 alertRequiredGuest: '❌ Please fill in all required fields (*) for Guest ',
@@ -743,7 +740,6 @@
                 thankYou: '🎉 Vă mulțumim!',
                 successSub: 'Dumneavoastră și oaspeții dvs. ați fost înregistrați cu succes.',
                 roomCodeHint: '⚠️ Vă rugăm să salvați acest cod! Acesta este codul tehnic pentru cameră.',
-                receptionHint: 'Afișați acest cod la recepție la check-in.',
                 loadingText: 'Trimiterea datelor...',
                 alertRequired: '❌ Vă rugăm să completați "',
                 alertRequiredGuest: '❌ Vă rugăm să completați toate câmpurile obligatorii (*) pentru Oaspetele ',
@@ -1077,24 +1073,27 @@
             document.getElementById('loading').classList.add('active');
             document.getElementById('registerBtn').disabled = true;
             
-            const params = new URLSearchParams();
-            params.append('Номер на резервация', data.reservation.number);
-            params.append('Дата на резервация', data.reservation.date);
-            params.append('Дата на пристигане', data.reservation.arrival);
-            params.append('Дата на напускане', data.reservation.departure);
-            params.append('Брой гости', data.guests.length);
-            params.append('Гости (JSON)', JSON.stringify(data.guests));
+            // ПОДГОТВЯМЕ ДАННИТЕ КАТО JSON
+            const jsonData = {
+                'Номер на резервация': data.reservation.number,
+                'Дата на резервация': data.reservation.date,
+                'Дата на пристигане': data.reservation.arrival,
+                'Дата на напускане': data.reservation.departure,
+                'Брой гости': data.guests.length,
+                'Гости (JSON)': JSON.stringify(data.guests)
+            };
             
             // НОВИЯТ ВИ URL
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbzkIGYkcwI4iXPeMYgfMpYu-4lKTYwrSdbBIbQFAa4qKr9tklEd8W1eG6cyMWQBxyNp/exec';
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbwlrtPPk0dgFT8r-urnIv6Ndc1YYbkH7vUMGqXxV7b79l739VWlBdzeqFebt1vU5KKT/exec';
             
+            // ИЗПРАЩАМЕ КАТО JSON
             fetch(scriptURL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                 },
-                body: params.toString()
+                body: JSON.stringify(jsonData)
             })
             .then(() => {
                 document.getElementById('loading').classList.remove('active');
@@ -1105,7 +1104,7 @@
                 document.getElementById('successMessage').classList.add('active');
                 document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
                 console.log('✅ Данните са изпратени успешно!');
-                console.log('📦 Данни:', data);
+                console.log('📦 Данни:', jsonData);
             })
             .catch(error => {
                 document.getElementById('loading').classList.remove('active');

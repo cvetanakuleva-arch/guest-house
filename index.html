@@ -1173,33 +1173,35 @@
             document.getElementById('loading').classList.add('active');
             document.getElementById('registerBtn').disabled = true;
             
-            // ПРЕОБРАЗУВАМЕ ДАННИТЕ В URL ПАРАМЕТРИ
-            const params = new URLSearchParams();
-            params.append('Номер на резервация', data.reservation.number);
-            params.append('Дата на резервация', data.reservation.date);
-            params.append('Дата на пристигане', data.reservation.arrival);
-            params.append('Дата на напускане', data.reservation.departure);
-            params.append('Брой гости', data.guests.length);
-            params.append('Гости (JSON)', JSON.stringify(data.guests));
+            // ПОДГОТВЯМЕ ДАННИТЕ КАТО JSON
+            const jsonData = {
+                'Номер на резервация': data.reservation.number,
+                'Дата на резервация': data.reservation.date,
+                'Дата на пристигане': data.reservation.arrival,
+                'Дата на напускане': data.reservation.departure,
+                'Брой гости': data.guests.length,
+                'Гости (JSON)': JSON.stringify(data.guests)
+            };
             
             // ВАШИЯТ URL ОТ GOOGLE APPS SCRIPT
             const scriptURL = 'https://script.google.com/macros/s/AKfycbznUqNzVajc2Kl9_rq4KvNO3nJioU5kzMX2fsVIufFfWobhpiUEH6ju5dOQB-KP3w6x/exec';
             
+            // ИЗПРАЩАМЕ КАТО JSON
             fetch(scriptURL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                 },
-                body: params.toString()
+                body: JSON.stringify(jsonData)
             })
             .then(() => {
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('registerBtn').disabled = false;
                 
                 // ФИКСИРАН КОД ЗА СТАЯТА - ВИНАГИ 1234
-        const roomCode = '1234';
-        document.querySelector('.room-code').innerHTML = `🔑 ${roomCode}`;
+                const roomCode = '1234';
+                document.querySelector('.room-code').innerHTML = `🔑 ${roomCode}`;
                 
                 document.getElementById('successMessage').classList.add('active');
                 document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
@@ -1278,4 +1280,3 @@
     </script>
 </body>
 </html>
-       

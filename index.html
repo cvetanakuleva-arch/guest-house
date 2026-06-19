@@ -1183,10 +1183,10 @@
                 'Гости (JSON)': JSON.stringify(data.guests)
             };
             
-            // ВАШИЯТ URL ОТ GOOGLE APPS SCRIPT
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbznUqNzVajc2Kl9_rq4KvNO3nJioU5kzMX2fsVIufFfWobhpiUEH6ju5dOQB-KP3w6x/exec';
+            // НОВИЯТ ВИ URL ОТ GOOGLE APPS SCRIPT
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzSjZWBv3rG7YcTyXqNZ0g01HyQnqmrbvW7dWu9LqX1H7WYiGYYV0lnRiOAeJPW-zA9/exec';
             
-            // ИЗПРАЩАМЕ КАТО JSON
+            // ИЗПРАЩАМЕ КАТО JSON С mode: 'no-cors' за GitHub Pages
             fetch(scriptURL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -1196,13 +1196,13 @@
                 body: JSON.stringify(jsonData)
             })
             .then(() => {
+                // ПРИ no-cors НЕ МОЖЕМ ДА ПРОЧЕТЕМ ОТГОВОРА, НО ЗНАЕМ, ЧЕ ЗАЯВКАТА Е ИЗПРАТЕНА
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('registerBtn').disabled = false;
                 
-                // ФИКСИРАН КОД ЗА СТАЯТА - ВИНАГИ 1234
+                // ПОКАЗВАМЕ УСПЕХ (ПРЕДПОЛАГАМЕ, ЧЕ ДАННИТЕ СА ЗАПИСАНИ)
                 const roomCode = '1234';
                 document.querySelector('.room-code').innerHTML = `🔑 ${roomCode}`;
-                
                 document.getElementById('successMessage').classList.add('active');
                 document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
                 console.log('✅ Данните са изпратени успешно!');

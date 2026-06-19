@@ -7,7 +7,7 @@
     
     <style>
         /* ============================================
-           ВСИЧКИ CSS СТИЛОВЕ (СЪЩИТЕ КАТО ПРЕДИ)
+           ВСИЧКИ CSS СТИЛОВЕ
            ============================================ */
         
         * {
@@ -519,9 +519,6 @@
                 <div id="roomCodeHint" class="sub-message" style="font-weight: 600;">
                     ⚠️ Моля, запишете този код! Той е вашият технически код за стаята.
                 </div>
-                <div id="receptionHint" style="margin-top: 15px; font-size: 0.9em; color: #155724;">
-                    Покажете този код на рецепцията при настаняване.
-                </div>
             </div>
 
             <div id="loading" class="loading">
@@ -614,6 +611,7 @@
                 thankYou: '🎉 Благодарим ви!',
                 successSub: 'Вие и вашите гости бяхте регистрирани успешно.',
                 roomCodeHint: '⚠️ Моля, запишете този код! Той е вашият технически код за стаята.',
+                receptionHint: 'Покажете този код на рецепцията при настаняване.',
                 loadingText: 'Изпращане на данните...',
                 alertRequired: '❌ Моля, попълнете "',
                 alertRequiredGuest: '❌ Моля, попълнете всички задължителни полета (*) за Гост ',
@@ -657,6 +655,7 @@
                 thankYou: '🎉 Благодарим вас!',
                 successSub: 'Вы и ваши гости были зарегистрированы успешно.',
                 roomCodeHint: '⚠️ Пожалуйста, запишите этот код! Это ваш технический код для комнаты.',
+                receptionHint: 'Покажите этот код на ресепшене при заселении.',
                 loadingText: 'Отправка данных...',
                 alertRequired: '❌ Пожалуйста, заполните "',
                 alertRequiredGuest: '❌ Пожалуйста, заполните все обязательные поля (*) для Гостя ',
@@ -700,6 +699,7 @@
                 thankYou: '🎉 Thank you!',
                 successSub: 'You and your guests have been registered successfully.',
                 roomCodeHint: '⚠️ Please save this code! This is your technical room code.',
+                receptionHint: 'Show this code at the reception upon check-in.',
                 loadingText: 'Sending data...',
                 alertRequired: '❌ Please fill in "',
                 alertRequiredGuest: '❌ Please fill in all required fields (*) for Guest ',
@@ -743,6 +743,7 @@
                 thankYou: '🎉 Vă mulțumim!',
                 successSub: 'Dumneavoastră și oaspeții dvs. ați fost înregistrați cu succes.',
                 roomCodeHint: '⚠️ Vă rugăm să salvați acest cod! Acesta este codul tehnic pentru cameră.',
+                receptionHint: 'Afișați acest cod la recepție la check-in.',
                 loadingText: 'Trimiterea datelor...',
                 alertRequired: '❌ Vă rugăm să completați "',
                 alertRequiredGuest: '❌ Vă rugăm să completați toate câmpurile obligatorii (*) pentru Oaspetele ',
@@ -785,7 +786,6 @@
             document.getElementById('thankYouText').textContent = t.thankYou;
             document.getElementById('successSubText').textContent = t.successSub;
             document.getElementById('roomCodeHint').textContent = t.roomCodeHint;
-            document.getElementById('receptionHint').textContent = t.receptionHint;
             document.getElementById('loadingText').textContent = t.loadingText;
             
             const guestCountDisplay = parseInt(document.getElementById('guestCountDisplay').textContent);
@@ -1069,7 +1069,7 @@
         }
 
         // ============================================
-        // ФУНКЦИЯ: ИЗПРАЩАНЕ КЪМ GOOGLE SHEETS (ПОПРАВЕНА)
+        // ФУНКЦИЯ: ИЗПРАЩАНЕ КЪМ GOOGLE SHEETS
         // ============================================
         function sendDataToGoogleSheets(data) {
             const t = translations[currentLanguage];
@@ -1077,7 +1077,6 @@
             document.getElementById('loading').classList.add('active');
             document.getElementById('registerBtn').disabled = true;
             
-            // ПОДГОТВЯМЕ ДАННИТЕ КАТО URL ПАРАМЕТРИ
             const params = new URLSearchParams();
             params.append('Номер на резервация', data.reservation.number);
             params.append('Дата на резервация', data.reservation.date);
@@ -1086,10 +1085,9 @@
             params.append('Брой гости', data.guests.length);
             params.append('Гости (JSON)', JSON.stringify(data.guests));
             
-            // ВАШИЯТ URL ОТ GOOGLE APPS SCRIPT
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbzSjZWBv3rG7YcTyXqNZ0g01HyQnqmrbvW7dWu9LqX1H7WYiGYYV0lnRiOAeJPW-zA9/exec';
+            // НОВИЯТ ВИ URL
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzb3YRiGyySCJBFXKKQP2fAy8AoiYApR6Y6mt9XZcCZkuvmYbj-I5_1kuFkb88OheCy/exec';
             
-            // ИЗПРАЩАМЕ КАТО URL ПАРАМЕТРИ
             fetch(scriptURL, {
                 method: 'POST',
                 mode: 'no-cors',
